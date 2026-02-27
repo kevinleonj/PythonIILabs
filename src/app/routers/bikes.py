@@ -8,7 +8,7 @@ bike_data_source =BikesDataSource()
 
 @router.get("/", response_model=list[BikeResponse])
 def get_all_bikes(
-    status: Optional[Literal["availalbe", "rented", "maintenance"]] = None,
+    status: Optional[Literal["available", "rented", "maintenance"]] = None,
 ) -> Any:
     all_bikes = bike_data_source.get_all_bikes()
     if status is not None:

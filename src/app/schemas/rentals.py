@@ -5,7 +5,7 @@ class RentalOutcome(BaseModel):
     user_id: int
     battery_level: float = Field(ge=0, le=100)
 
-    @field_validator(battery_level)
+    @field_validator("battery_level")
     @classmethod
     def battery_must_be_sufficient(cls, value):
         if value < 20:

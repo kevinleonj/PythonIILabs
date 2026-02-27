@@ -4,7 +4,7 @@ from src.app.data.users_data_source import UsersDataSource
 from src.app.schemas.users import UserCreate, UserResponse
 
 router = APIRouter()
-user_data_source = UsersDataSource
+user_data_source = UsersDataSource()
 
 @router.get("/", response_model=list[UserResponse])
 def get_all_users() -> Any:
