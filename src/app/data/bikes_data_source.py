@@ -46,4 +46,4 @@ class BikesDataSource:
         return False
     
 def get_bike_datasource() -> BikesDataSource:
-    return BikesDataSource
+    return BikesDataSource()
