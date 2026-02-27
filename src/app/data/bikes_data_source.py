@@ -44,3 +44,6 @@ class BikesDataSource:
             BIKES.remove(bike)
             return True
         return False
+    
+def get_bike_datasource() -> BikesDataSource:
+    return BikesDataSource
