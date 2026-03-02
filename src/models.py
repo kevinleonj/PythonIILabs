@@ -33,13 +33,20 @@ class User(Base):
 
 class Rental(Base):
     __tablename__ = "rentals"
+    
     id: Mapped[int] = mapped_column(primary_key=True)
+    
     bike_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("bikes.id", ondelete= "SET NULL"),
-        nullable = True
+        ForeignKey("bikes.id", ondelete="SET NULL"),
+        nullable=True
     )
-
-    user_id: Mapped[Optional[int]] = mapped_column(Float, nullable=False)
+    
+    user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True
+    )
+    
+    battery_level: Mapped[float] = mapped_column(Float, nullable=False)
 
     bike: Mapped[Optional["Bike"]] = relationship(
         "Bike",
