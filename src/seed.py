@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.models import Bike
-from src.models import User
+from src.models import Bike, User
+from src.app.security import get_password_hash
 
 
 INITIAL_BIKES = [
@@ -11,16 +11,22 @@ INITIAL_BIKES = [
 ]
 
 INITIAL_USERS = [
-    {"username": "rider_one", "is_active": True},
-    {"username": "admin_dave", "is_active": True},
+    {
+        "username": "rider_one",
+        "is_active": True,
+        "hashed_password": get_password_hash("riderpass123"),
+        "role": "rider",
+    },
+    {
+        "username": "admin_dave",
+        "is_active": True,
+        "hashed_password": get_password_hash("adminpass123"),
+        "role": "admin",
+    },
 ]
 
 
 async def seed_data(db: AsyncSession):
-    """
-    Checks if the DB is empty. If yes, populates it with mock data.
-    This runs once at startup inside the lifespan function.
-    """
     print("Checking if database needs seeding...")
 
     result = await db.execute(select(Bike).limit(1))
@@ -39,7 +45,6 @@ async def seed_data(db: AsyncSession):
     for user_data in INITIAL_USERS:
         new_user = User(**user_data)
         db.add(new_user)
-
 
     await db.commit()
     print("Seeding complete!")

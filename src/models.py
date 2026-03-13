@@ -1,6 +1,5 @@
-from typing import Optional
-from typing import List
-from sqlalchemy import String, Float, Boolean, ForeignKey
+from typing import Optional, List
+from sqlalchemy import String, Float, Boolean, ForeignKey, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -29,6 +28,8 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(200), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="rider", nullable=False)
 
     rentals: Mapped[List["Rental"]] = relationship(
         "Rental",
@@ -62,3 +63,12 @@ class Rental(Base):
         "User",
         back_populates="rentals"
     )
+
+
+class Station(Base):
+    __tablename__ = "stations"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    location: Mapped[str] = mapped_column(String(200), nullable=False)
+    capacity: Mapped[int] = mapped_column(Integer, nullable=False)
