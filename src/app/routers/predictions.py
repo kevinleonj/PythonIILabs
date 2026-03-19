@@ -1,7 +1,7 @@
 import os
 from typing import Any
 
-import numpy
+import pandas
 import joblib
 from fastapi import APIRouter
 
@@ -24,11 +24,12 @@ model = joblib.load(model_file_path)
 
 @router.post("/")
 def predict_trip_duration(trip_data: TripInput) -> Any:
-    input_array = numpy.array(
-        [[trip_data.distance_km, trip_data.battery_level]]
+    input_data = pandas.DataFrame(
+        [[trip_data.distance_km, trip_data.battery_level]],
+        columns=["distance_km", "battery_level"],
     )
 
-    prediction = model.predict(input_array)
+    prediction = model.predict(input_data)
 
     estimated_minutes = round(float(prediction[0]), 2)
 
