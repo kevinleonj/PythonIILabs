@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from src.app.routers import bikes, users, rentals, admin, auth, stations
+from src.app.routers import bikes, users, rentals, admin, auth, stations, predictions
 from src.database import engine, async_session
 from src.models import Base
 from src.seed import seed_data
@@ -27,3 +27,4 @@ app.include_router(rentals.router, prefix="/rentals", tags=["rentals"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(auth.router, tags=["auth"])
 app.include_router(stations.router, prefix="/stations", tags=["stations"])
+app.include_router(predictions.router, prefix="/predict", tags=["predictions"])
