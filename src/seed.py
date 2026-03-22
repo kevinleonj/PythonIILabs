@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.models import Bike, User
 from src.app.security import get_password_hash
+from src.app.logger import logger
 
 
 INITIAL_BIKES = [
@@ -27,16 +28,16 @@ INITIAL_USERS = [
 
 
 async def seed_data(db: AsyncSession):
-    print("Checking if database needs seeding...")
+    logger.info("Checking if database needs seeding...")
 
     result = await db.execute(select(Bike).limit(1))
     first_bike = result.scalar_one_or_none()
 
     if first_bike:
-        print("Database already contains data. Skipping seed.")
+        logger.info("Database already contains data. Skipping seed.")
         return
 
-    print("Seeding database with initial mock data...")
+    logger.info("Seeding database with initial mock data...")
 
     for bike_data in INITIAL_BIKES:
         new_bike = Bike(**bike_data)
@@ -47,4 +48,4 @@ async def seed_data(db: AsyncSession):
         db.add(new_user)
 
     await db.commit()
-    print("Seeding complete!")
+    logger.info("Seeding complete!")

@@ -4,10 +4,12 @@ from src.app.routers import bikes, users, rentals, admin, auth, stations, predic
 from src.database import engine, async_session
 from src.models import Base
 from src.seed import seed_data
+from src.app.logger import logger
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Application starting up...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -16,6 +18,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    logger.info("Application shutting down...")
     await engine.dispose()
 
 
