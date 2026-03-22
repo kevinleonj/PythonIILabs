@@ -1,3 +1,4 @@
+import asyncio
 import os
 from typing import Any
 
@@ -22,16 +23,26 @@ model_file_path = os.path.normpath(model_file_path)
 model = joblib.load(model_file_path)
 
 
-@router.post("/")
-def predict_trip_duration(trip_data: TripInput) -> Any:
-    logger.info(f"Prediction requested: distance={trip_data.distance_km}, battery={trip_data.battery_level}")
+def _run_prediction(distance_km: float, battery_level: float) -> float:
     input_data = pandas.DataFrame(
-        [[trip_data.distance_km, trip_data.battery_level]],
+        [[distance_km, battery_level]],
         columns=["distance_km", "battery_level"],
     )
+    return float(model.predict(input_data)[0])
 
-    prediction = model.predict(input_data)
-    estimated_minutes = round(float(prediction[0]), 2)
 
-    logger.info(f"Prediction result: {estimated_minutes} minutes")
+@router.post("/")
+async def predict_trip_duration(trip_data: TripInput) -> Any:
+    logger.info(
+        "Prediction requested: distance=%s, battery=%s",
+        trip_data.distance_km,
+        trip_data.battery_level,
+    )
+    estimated_minutes = await asyncio.to_thread(
+        _run_prediction,
+        trip_data.distance_km,
+        trip_data.battery_level,
+    )
+    estimated_minutes = round(estimated_minutes, 2)
+    logger.info("Prediction result: %s minutes", estimated_minutes)
     return {"estimated_minutes": estimated_minutes}

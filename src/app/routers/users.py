@@ -1,58 +1,85 @@
 from typing import Any
-from fastapi import APIRouter, HTTPException
-from src.app.data.users_data_source import UsersDataSource
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from src.database import get_db
+from src.models import User
 from src.app.schemas.users import UserCreate, UserResponse
 from src.app.logger import logger
 
 router = APIRouter()
-user_data_source = UsersDataSource()
 
 
 @router.get("/", response_model=list[UserResponse])
-def get_all_users() -> Any:
+async def get_all_users(
+    db: AsyncSession = Depends(get_db),
+) -> Any:
     logger.info("Fetching all users")
-    users = user_data_source.get_all_users()
+    result = await db.execute(select(User))
+    users = result.scalars().all()
     if not users:
         logger.warning("No users found")
     return users
 
 
 @router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int) -> Any:
-    logger.info(f"Fetching user with id: {user_id}")
-    user = user_data_source.get_user(user_id)
+async def get_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    logger.info("Fetching user with id: %d", user_id)
+    user = await db.get(User, user_id)
     if user is None:
-        logger.warning(f"User not found: {user_id}")
+        logger.warning("User not found: %d", user_id)
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 
 @router.post("/", response_model=UserResponse, status_code=201)
-def create_user(new_user: UserCreate) -> Any:
-    logger.info(f"Creating new user: {new_user.username}")
+async def create_user(
+    new_user: UserCreate,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    logger.info("Creating new user: %s", new_user.username)
     user_dict = new_user.model_dump()
     user_dict["is_active"] = True
-    created_user = user_data_source.create_user(user_dict)
+    user_dict["hashed_password"] = "placeholder"
+    user_dict["role"] = "rider"
+    created_user = User(**user_dict)
+    db.add(created_user)
+    await db.commit()
+    await db.refresh(created_user)
     return created_user
 
 
 @router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, user_update: UserCreate) -> Any:
-    logger.info(f"Updating user: {user_id}")
-    updated_user = user_data_source.update_user(
-        user_id, user_update.model_dump()
-    )
-    if updated_user is None:
-        logger.warning(f"User not found for update: {user_id}")
+async def update_user(
+    user_id: int,
+    user_update: UserCreate,
+    db: AsyncSession = Depends(get_db),
+) -> Any:
+    logger.info("Updating user: %d", user_id)
+    existing = await db.get(User, user_id)
+    if existing is None:
+        logger.warning("User not found for update: %d", user_id)
         raise HTTPException(status_code=404, detail="User not found")
-    return updated_user
+    for key, value in user_update.model_dump().items():
+        setattr(existing, key, value)
+    await db.commit()
+    await db.refresh(existing)
+    return existing
 
 
 @router.delete("/{user_id}")
-def delete_user(user_id: int) -> dict[str, str]:
-    logger.info(f"Deleting user: {user_id}")
-    deleted = user_data_source.delete_user(user_id)
-    if not deleted:
-        logger.warning(f"User not found for deletion: {user_id}")
+async def delete_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    logger.info("Deleting user: %d", user_id)
+    user = await db.get(User, user_id)
+    if not user:
+        logger.warning("User not found for deletion: %d", user_id)
         raise HTTPException(status_code=404, detail="User not found")
+    await db.delete(user)
+    await db.commit()
     return {"detail": "User deleted"}
