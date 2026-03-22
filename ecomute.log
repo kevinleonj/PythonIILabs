@@ -1,0 +1,5 @@
+2026-03-22 20:55:06,803 - WARNING - User not found: 999
+2026-03-22 20:55:07,683 - WARNING - Login failed: wrong password for user: rider_one
+2026-03-22 20:55:07,689 - WARNING - Login failed: user not found: nobody
+2026-03-22 20:55:07,699 - WARNING - Non-admin user rider_one tried to create a station
+2026-03-22 20:55:07,721 - ERROR - Failed admin authentication attempt
